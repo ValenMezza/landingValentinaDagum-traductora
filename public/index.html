@@ -271,7 +271,33 @@
                 <div class="contact__options">
                     <div class="contact__form">
                         <h3 class="contact__subtitle">Envíame un mensaje</h3>
-                        <form class="form" action="/api/contacto" method="POST">
+
+                        <form class="form" id="contact-form">
+                            <div class="form__group">
+                                <label class="form__label" for="name">Nombre:</label>
+                                <input class="form__input" type="text" id="name" name="nombre" required>
+                            </div>
+
+                            <div class="form__group">
+                                <label class="form__label" for="email">Correo Electrónico:</label>
+                                <input class="form__input" type="email" id="email" name="email" required>
+                            </div>
+
+                            <div class="form__group">
+                                <label class="form__label" for="message">Mensaje:</label>
+                                <textarea class="form__textarea" id="message" name="mensaje" rows="5"
+                                    required></textarea>
+                            </div>
+
+                            <button class="button button--primary" type="submit" id="submit-btn">
+                                Enviar mensaje
+                            </button>
+
+                            <p id="form-status" style="margin-top:1rem;"></p>
+                        </form>
+
+
+                        <!-- <form class="form" action="/api/contacto" method="POST">
                             <div class="form__group">
                                 <label class="form__label" for="name">Nombre:</label>
                                 <input class="form__input" type="text" id="name" name="nombre" required>
@@ -286,7 +312,7 @@
                                     required></textarea>
                             </div>
                             <button class="button button--primary" type="submit">Enviar mensaje</button>
-                        </form>
+                        </form> -->
                     </div>
 
                     <div class="contact__direct">
@@ -535,6 +561,45 @@
             });
         });
     </script>
+    <script>
+        const form = document.getElementById("contact-form");
+        const status = document.getElementById("form-status");
+        const btn = document.getElementById("submit-btn");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            btn.disabled = true;
+            btn.textContent = "Enviando...";
+            status.textContent = "";
+
+            const formData = new FormData(form);
+
+            try {
+                const res = await fetch("/api/contacto", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                const result = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(result.error || "Error enviando el mensaje");
+                }
+
+                status.style.color = "green";
+                status.textContent = "✅ Mensaje enviado correctamente";
+                form.reset();
+            } catch (err) {
+                status.style.color = "red";
+                status.textContent = "❌ No se pudo enviar el mensaje. Intentá más tarde.";
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Enviar mensaje";
+            }
+        });
+    </script>
+
 </body>
 
 </html>
