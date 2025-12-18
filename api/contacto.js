@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 
 export default async function handler(req, res) {
-  // CORS opcional (si algún día llamás desde fetch)
+  // (Opcional) CORS básico
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -20,20 +20,26 @@ export default async function handler(req, res) {
 
     const resend = new Resend(resendKey);
 
-    // Vercel parsea body según Content-Type.
-    // Tu form HTML manda application/x-www-form-urlencoded.
-    const { nombre, email, mensaje } = req.body || {};
+    // Vercel parsea JSON y x-www-form-urlencoded.
+    const body = req.body || {};
+    const nombre = (body.nombre || "").toString().trim();
+    const email = (body.email || "").toString().trim();
+    const mensaje = (body.mensaje || "").toString().trim();
 
     if (!nombre || !email || !mensaje) {
-      return res.status(400).json({ ok: false, error: "Faltan campos: nombre, email, mensaje" });
+      return res.status(400).json({
+        ok: false,
+        error: "Faltan campos: nombre, email, mensaje",
+      });
     }
 
     const to = emailToRaw.split(",").map((e) => e.trim()).filter(Boolean);
+    if (!to.length) return res.status(500).json({ ok: false, error: "EMAIL_TO vacío o inválido" });
 
     const { data, error } = await resend.emails.send({
       from: `Landing Valentina <${fromEmail}>`,
       to,
-      replyTo: email,
+      replyTo: email, // ✅ importante: replyTo (no reply_to)
       subject: "Landing Valentina - Nuevo mensaje de contacto",
       text: `Nombre: ${nombre}\nEmail: ${email}\n\nMensaje:\n${mensaje}`,
       html: `
